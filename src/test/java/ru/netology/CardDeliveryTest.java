@@ -24,9 +24,6 @@ public class CardDeliveryTest {
 
     @BeforeEach
     void setUp() {
-        Configuration.browser = "chrome";
-        Configuration.browserSize = "1920x1080";
-        Configuration.headless = false;
         open("http://localhost:9999");
     }
 
