@@ -1,6 +1,7 @@
 package ru.netology;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.Keys;
@@ -9,7 +10,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-import static com.codeborne.selenide.Selectors.withText;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
@@ -24,6 +24,9 @@ public class CardDeliveryTest {
 
     @BeforeEach
     void setUp() {
+        Configuration.browser = "chrome";
+        Configuration.browserSize = "1920x1080";
+        Configuration.headless = false;
         open("http://localhost:9999");
     }
 
@@ -54,8 +57,18 @@ public class CardDeliveryTest {
         // Отправка формы
         $$("button").findBy(Condition.text("Забронировать")).click();
 
-        // Проверка успешного уведомления
-        $(withText("Успешно!")).shouldBe(Condition.visible, Duration.ofSeconds(15));
-        $(withText("Встреча успешно забронирована")).shouldBe(Condition.visible);
+        // Проверка видимости уведомления (не более 15 секунд)
+        $("[data-test-id='notification']").shouldBe(Condition.visible, Duration.ofSeconds(15));
+
+        // ПРАВИЛЬНАЯ ПРОВЕРКА: ищем элемент по CSS селектору, проверяем видимость и точный текст
+        $("[data-test-id='notification'] .notification__title")
+                .shouldBe(Condition.visible)
+                .shouldHave(Condition.exactText("Успешно!"));
+
+        // Проверяем текст с датой встречи (сервис может ошибаться!)
+        String expectedText = "Встреча успешно забронирована на " + date;
+        $("[data-test-id='notification'] .notification__content")
+                .shouldBe(Condition.visible)
+                .shouldHave(Condition.exactText(expectedText));
     }
 }
